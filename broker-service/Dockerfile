@@ -1,22 +1,22 @@
-FROM golang:1.21.3-alpine3.18 as builder
+# FROM golang:1.21.3-alpine3.18 as builder
 
-RUN mkdir /app
+# ENV GOOS=linux
 
-COPY . /app
+# RUN mkdir /app
 
-WORKDIR /app
+# COPY . /app
 
-RUN CGO_ENABLED=0 go build -o brokerApp ./cmd/api
+# WORKDIR /app
 
-# Probably not needed, turns results of the build into an executable
-RUN chmod +x /app/brokerApp
+# RUN CGO_ENABLED=0 go build -o brokerApp ./cmd/api
 
 # Build tiny docker image
 FROM alpine:latest
 
 RUN mkdir /app
 
-COPY --from=builder /app/brokerApp /app
+# COPY --from=builder /app/brokerApp /app
+COPY brokerApp /app
 
 # Run executable created in the first image and then transfered to the second, smaller image
 CMD [ "/app/brokerApp" ]
