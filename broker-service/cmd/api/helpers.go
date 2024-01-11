@@ -7,6 +7,8 @@ import (
 	"net/http"
 )
 
+// TODO: Export as independent package
+
 type jsonResponse struct {
 	Error   bool   `json:"error"`
 	Message string `json:"message"`
@@ -34,14 +36,14 @@ func (app *Config) readJSON(w http.ResponseWriter, r *http.Request, data any) er
 	return nil
 }
 
-func (app *Config) writeJSON(w http.ResponseWriter, status int, data any, header *http.Header) error {
+func (app *Config) writeJSON(w http.ResponseWriter, status int, data any, header ...http.Header) error {
 	out, err := json.Marshal(data)
 	if err != nil {
 		return nil
 	}
 
-	if header != nil {
-		for key, value := range *header {
+	if len(header) != 0 {
+		for key, value := range header[0] {
 			w.Header()[key] = value
 		}
 	}
@@ -53,10 +55,10 @@ func (app *Config) writeJSON(w http.ResponseWriter, status int, data any, header
 	return err
 }
 
-func (app *Config) errorJSON(w http.ResponseWriter, err error, status *int) error {
+func (app *Config) errorJSON(w http.ResponseWriter, err error, status ...int) error {
 	statusCode := http.StatusBadRequest
-	if status != nil {
-		statusCode = *status
+	if len(status) != 0 {
+		statusCode = status[0]
 	}
 
 	var payload jsonResponse
