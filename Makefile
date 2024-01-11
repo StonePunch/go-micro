@@ -52,4 +52,6 @@ start: build_front
 stop:
 	@echo "Stopping front end..."
 	@-pkill -SIGTERM -f "./${FRONT_END_BINARY}"
+	@echo "Cleaning up binaries..."
+	rm -f ./front-end/frontApp
 	@echo "Stopped front end!"
