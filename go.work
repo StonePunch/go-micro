@@ -1,6 +1,7 @@
 go 1.21.3
 
 use (
+  ./logger-service
   ./authentication-service
 	./broker-service
 	./front-end
