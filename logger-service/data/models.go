@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -79,4 +80,58 @@ func (l *LogEntry) All() ([]*LogEntry, error) {
 	}
 
 	return logs, nil
+}
+
+func (l *LogEntry) GetOne(id string) (*LogEntry, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*15)
+	defer cancel()
+
+	collection := client.Database("logs").Collection("logs")
+
+	bsonID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		log.Println("Error converting id into bson:", err)
+		return nil, err
+	}
+
+	filter := bson.M{"_id": bsonID}
+
+	var entry LogEntry
+	err = collection.FindOne(ctx, filter).Decode(&entry)
+	if err != nil {
+		log.Printf("Error retrieving log with bsonID of %s: %v\n", bsonID, err)
+		return nil, err
+	}
+
+	return &entry, nil
+}
+
+func (l *LogEntry) Update() (*mongo.UpdateResult, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*15)
+	defer cancel()
+
+	collection := client.Database("logs").Collection("logs")
+
+	bsonID, err := primitive.ObjectIDFromHex(l.ID)
+	if err != nil {
+		log.Println("Error converting id into bson:", err)
+		return nil, err
+	}
+
+	filter := bson.M{"_id": bsonID}
+	update := bson.D{
+		{Key: "$set", Value: bson.D{
+			{Key: "name", Value: l.Name},
+			{Key: "data", Value: l.Data},
+			{Key: "updated_at", Value: time.Now()},
+		}},
+	}
+
+	result, err := collection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		log.Printf("Error updating log with bsonID of %s: %v\n", bsonID, err)
+		return nil, err
+	}
+
+	return result, nil
 }
