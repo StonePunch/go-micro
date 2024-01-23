@@ -138,3 +138,18 @@ func (l *LogEntry) Update() (*mongo.UpdateResult, error) {
 
 	return result, nil
 }
+
+func (l *LogEntry) DropCollection() error {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*15)
+	defer cancel()
+
+	collection := client.Database("logs").Collection("logs")
+
+	err := collection.Drop(ctx)
+	if err != nil {
+		log.Println("Error dropping collection:", err)
+		return err
+	}
+
+	return nil
+}
