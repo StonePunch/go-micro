@@ -14,13 +14,17 @@ import (
 	_ "github.com/jackc/pgx/v4/stdlib"
 )
 
-const port = 80
+const (
+	webPort = 80
 
-// counts is the number of times connecting to the database is attempted
-var counts int64
+	// maxCount is the maximum number of times connecting to the
+	// database is attempted
+	maxCount = 10
 
-// timeInterval is the time between each attempt at connecting to the database
-var timeInterval = 2 * time.Second
+	// timeInterval is the time between each attempt at connecting
+	// to the database
+	timeInterval = time.Second * 2
+)
 
 type Config struct {
 	DB     *sql.DB
@@ -41,7 +45,7 @@ func main() {
 	}
 
 	srv := &http.Server{
-		Addr:    fmt.Sprintf(":%d", port),
+		Addr:    fmt.Sprintf(":%d", webPort),
 		Handler: app.routes(),
 	}
 
@@ -66,19 +70,23 @@ func openDB(dataSourceName string) (*sql.DB, error) {
 }
 
 func connectToDB() *sql.DB {
+	// count is the number of times connecting to the database is attempted
+	count := 0
+
+	// fetch env var defined in docker-compose
 	dataSourceName := os.Getenv("DSN")
 
 	for {
 		connection, err := openDB(dataSourceName)
 		if err != nil {
 			log.Println("Postgres not yet ready...")
-			counts++
+			count++
 		} else {
 			log.Println("Connected to Postgres!")
 			return connection
 		}
 
-		if counts > 10 {
+		if count >= maxCount {
 			log.Println(err)
 			return nil
 		}
