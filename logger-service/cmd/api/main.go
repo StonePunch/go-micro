@@ -2,7 +2,10 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
+	"logger-service/data"
+	"net/http"
 	"time"
 
 	"go.mongodb.org/mongo-driver/mongo"
@@ -14,9 +17,8 @@ const (
 	mongoURL = "mongodb://mongo:27017"
 )
 
-var client *mongo.Client
-
 type Config struct {
+	Models data.Models
 }
 
 func main() {
@@ -31,13 +33,35 @@ func main() {
 
 	// close connection
 	defer func() {
+		log.Println("Disconnecting from mongo...")
+
 		if err = client.Disconnect(ctx); err != nil {
+			log.Println("Error disconnecting from mongo:", err)
 			panic(err)
 		}
+
+		log.Println("Successfully disconnected from mongo")
 	}()
+
+	app := Config{
+		Models: data.New(client),
+	}
+
+	log.Println("Starting logger-service on port:", webPort)
+	server := &http.Server{
+		Addr:    fmt.Sprintf(":%d", webPort),
+		Handler: app.routes(),
+	}
+
+	err = server.ListenAndServe()
+	if err != nil {
+		log.Panic(err)
+	}
 }
 
 func connectToMongo() (*mongo.Client, error) {
+	log.Println("Connecting to mongo...")
+
 	// create connection options
 	clientOptions := options.Client().ApplyURI(mongoURL)
 	clientOptions.SetAuth(options.Credential{
@@ -46,11 +70,13 @@ func connectToMongo() (*mongo.Client, error) {
 	})
 
 	// connect to mongo
-	c, err := mongo.Connect(context.TODO(), clientOptions)
+	client, err := mongo.Connect(context.TODO(), clientOptions)
 	if err != nil {
-		log.Println("Error connecting:", err)
+		log.Println("Error connecting to mongo:", err)
 		return nil, err
 	}
 
-	return c, nil
+	log.Println("Successfully connected to mongo")
+
+	return client, nil
 }
