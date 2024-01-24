@@ -12,16 +12,17 @@ import (
 
 const dbTimeout = time.Second * 3
 
-var db *sql.DB
+var client *sql.DB
 
-// Models is the type for this package. Note that any model that is included as a member
-// in this type is available to us throughout the application, anywhere that the
-// app variable is used, provided that the model is also added in the New function.
+// Models is the type for this package. Note that any model that is
+// included as a member in this type is available throughout the
+// application, anywhere that the app variable is used, provided that
+// the model is also added in the New function.
 type Models struct {
 	User User
 }
 
-// User is the structure which holds one user from the database.
+// User is the structure which represents one user from the database.
 type User struct {
 	ID        int       `json:"id"`
 	Email     string    `json:"email"`
@@ -33,10 +34,10 @@ type User struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-// New is the function used to create an instance of the data package. It returns the type
-// Model, which embeds all the types we want to be available to our application.
+// New creates an instance of the data package. It returns the type
+// Model, which embeds all the types needed for the application.
 func New(dbPool *sql.DB) Models {
-	db = dbPool
+	client = dbPool
 
 	return Models{
 		User: User{},
@@ -48,7 +49,7 @@ func (u *User) GetAll() ([]*User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
-	query := `
+	sql := `
 	SELECT
 		id,
 		email,
@@ -64,7 +65,7 @@ func (u *User) GetAll() ([]*User, error) {
 		last_name
 	`
 
-	rows, err := db.QueryContext(ctx, query)
+	rows, err := client.QueryContext(ctx, sql)
 	if err != nil {
 		return nil, err
 	}
@@ -101,7 +102,7 @@ func (u *User) GetByEmail(email string) (*User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
-	query := `
+	sql := `
 	SELECT
 		id,
 		email,
@@ -118,7 +119,7 @@ func (u *User) GetByEmail(email string) (*User, error) {
 	`
 
 	var user User
-	row := db.QueryRowContext(ctx, query, email)
+	row := client.QueryRowContext(ctx, sql, email)
 
 	err := row.Scan(
 		&user.ID,
@@ -143,7 +144,7 @@ func (u *User) GetOne(id int) (*User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
-	query := `
+	sql := `
 	SELECT
 		id,
 		email,
@@ -160,7 +161,7 @@ func (u *User) GetOne(id int) (*User, error) {
 	`
 
 	var user User
-	row := db.QueryRowContext(ctx, query, id)
+	row := client.QueryRowContext(ctx, sql, id)
 
 	err := row.Scan(
 		&user.ID,
@@ -180,13 +181,12 @@ func (u *User) GetOne(id int) (*User, error) {
 	return &user, nil
 }
 
-// Update updates one user in the database, using the information
-// stored in the receiver u
+// Update updates one user using the information stored in the receiver
 func (u *User) Update() error {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
-	stmt := `
+	sql := `
 	UPDATE users
 	SET
 		email = $1,
@@ -198,7 +198,7 @@ func (u *User) Update() error {
 		id = $6
 	`
 
-	_, err := db.ExecContext(ctx, stmt,
+	_, err := client.ExecContext(ctx, sql,
 		u.Email,
 		u.FirstName,
 		u.LastName,
@@ -214,18 +214,18 @@ func (u *User) Update() error {
 	return nil
 }
 
-// Delete deletes one user from the database, by User.ID
+// Delete deletes one user using the ID stored in the receiver
 func (u *User) Delete() error {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
-	stmt := `
+	sql := `
 	DELETE FROM users
 	WHERE
 		id = $1
 	`
 
-	_, err := db.ExecContext(ctx, stmt, u.ID)
+	_, err := client.ExecContext(ctx, sql, u.ID)
 	if err != nil {
 		return err
 	}
@@ -233,18 +233,18 @@ func (u *User) Delete() error {
 	return nil
 }
 
-// DeleteByID deletes one user from the database, by ID
+// DeleteByID deletes one user by id
 func (u *User) DeleteByID(id int) error {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
-	stmt := `
+	sql := `
 	DELETE FROM users
 	WHERE
 		id = $1
 	`
 
-	_, err := db.ExecContext(ctx, stmt, id)
+	_, err := client.ExecContext(ctx, sql, id)
 	if err != nil {
 		return err
 	}
@@ -252,7 +252,8 @@ func (u *User) DeleteByID(id int) error {
 	return nil
 }
 
-// Insert inserts a new user into the database, and returns the ID of the newly inserted row
+// Insert inserts a new user into the database and returns the id of
+// the newly inserted row
 func (u *User) Insert(user User) (int, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
@@ -263,7 +264,7 @@ func (u *User) Insert(user User) (int, error) {
 	}
 
 	var newID int
-	stmt := `
+	sql := `
 	INSERT INTO users
 		(email, first_name, last_name, password, user_active, created_at, updated_at)
 	VALUES
@@ -272,7 +273,7 @@ func (u *User) Insert(user User) (int, error) {
 		id
 	`
 
-	err = db.QueryRowContext(ctx, stmt,
+	err = client.QueryRowContext(ctx, sql,
 		user.Email,
 		user.FirstName,
 		user.LastName,
@@ -289,7 +290,7 @@ func (u *User) Insert(user User) (int, error) {
 	return newID, nil
 }
 
-// ResetPassword is the method we will use to change a user's password.
+// ResetPassword sets the password of the user
 func (u *User) ResetPassword(password string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
@@ -299,14 +300,14 @@ func (u *User) ResetPassword(password string) error {
 		return err
 	}
 
-	stmt := `
+	sql := `
 	UPDATE users
 	SET
 		password = $1
 	WHERE
 		id = $2
 	`
-	_, err = db.ExecContext(ctx, stmt, hashedPassword, u.ID)
+	_, err = client.ExecContext(ctx, sql, hashedPassword, u.ID)
 	if err != nil {
 		return err
 	}
@@ -314,9 +315,9 @@ func (u *User) ResetPassword(password string) error {
 	return nil
 }
 
-// PasswordMatches uses Go's bcrypt package to compare a user supplied password
-// with the hash we have stored for a given user in the database. If the password
-// and hash match, we return true; otherwise, we return false.
+// PasswordMatches uses Go's bcrypt package to compare a user's supplied
+// password with the hash we have stored in the database. If the password
+// and hash match.
 func (u *User) PasswordMatches(plainText string) (bool, error) {
 	err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(plainText))
 	if err != nil {
