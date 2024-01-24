@@ -11,6 +11,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+const dbTimeout = time.Second * 3
+
 var client *mongo.Client
 
 type Models struct {
@@ -34,7 +36,7 @@ func New(mongo *mongo.Client) Models {
 }
 
 func (l *LogEntry) Insert(entry LogEntry) error {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*15)
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
 	collection := client.Database("logs").Collection("logs")
@@ -54,7 +56,7 @@ func (l *LogEntry) Insert(entry LogEntry) error {
 }
 
 func (l *LogEntry) All() ([]*LogEntry, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*15)
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
 	collection := client.Database("logs").Collection("logs")
@@ -86,7 +88,7 @@ func (l *LogEntry) All() ([]*LogEntry, error) {
 }
 
 func (l *LogEntry) GetOne(id string) (*LogEntry, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*15)
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
 	collection := client.Database("logs").Collection("logs")
@@ -110,7 +112,7 @@ func (l *LogEntry) GetOne(id string) (*LogEntry, error) {
 }
 
 func (l *LogEntry) Update() (*mongo.UpdateResult, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*15)
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
 	collection := client.Database("logs").Collection("logs")
@@ -140,7 +142,7 @@ func (l *LogEntry) Update() (*mongo.UpdateResult, error) {
 }
 
 func (l *LogEntry) DropCollection() error {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*15)
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
 	collection := client.Database("logs").Collection("logs")
