@@ -43,6 +43,15 @@ services:
     volumes:
       - ./db-data/postgres/:/var/lib/postgresql/data/
 
+  logger-service:
+    build:
+      context: ./logger-service
+      dockerfile: Dockerfile
+    restart: always
+    deploy:
+      mode: replicated
+      replicas: 1
+
   # DB for the logger-service
   mongo:
     image: 'mongo:4.2.16-bionic'
