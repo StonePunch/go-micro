@@ -18,5 +18,4 @@ RUN mkdir /app
 # COPY --from=builder /app/brokerApp /app
 COPY brokerApp /app
 
-# Run executable created in the first image and then transfered to the second, smaller image
 CMD [ "/app/brokerApp" ]
