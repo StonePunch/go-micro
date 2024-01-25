@@ -24,6 +24,7 @@ down:
 	@echo "Cleaning up binaries..."
 	rm -f ./broker-service/brokerApp
 	rm -f ./authentication-service/authApp
+	rm -f ./logger-service/loggerApp
 	@echo "Done!"
 
 ## build_broker: builds the broker binary as a linux executable
