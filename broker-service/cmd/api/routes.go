@@ -23,6 +23,7 @@ func (app *Config) routes() http.Handler {
 
 	mux.Use(middleware.Heartbeat("/ping"))
 
+	// TODO: remove after completion
 	mux.Post("/", app.Broker)
 
 	mux.Post("/handle", app.HandleSubmission)
