@@ -10,6 +10,8 @@
         href="javascript:void(0);"> Test Broker </a>
       <a id="authBtn" class="btn btn-outline-secondary"
         href="javascript:void(0);"> Test Auth </a>
+      <a id="logBtn" class="btn btn-outline-secondary"
+        href="javascript:void(0);"> Test Log </a>
       <div id="output" class="mt-5"
         style="outline: 1px solid silver; padding: 2em;">
         <span class="text-muted">Output shows here...</span>
@@ -39,6 +41,7 @@
 <script>
   let brokerBtn = document.getElementById("brokerBtn");
   let authBtn = document.getElementById("authBtn");
+  let logBtn = document.getElementById("logBtn");
   let output = document.getElementById("output");
   let sent = document.getElementById("payload");
   let received = document.getElementById("received");
@@ -93,6 +96,21 @@
       auth: {
         email: "admin@example.com",
         password: "verysecret",
+      }
+    }
+
+    fetch("http:\/\/localhost:8080/handle", makeBody(payload))
+      .then((response) => response.json())
+      .then((data) => handleResponse(data, payload))
+      .catch((error) => handleError(error))
+  });
+
+  logBtn.addEventListener("click", function () {
+    const payload = {
+      action: "log",
+      log: {
+        name: "event",
+        data: "some test data",
       }
     }
 
