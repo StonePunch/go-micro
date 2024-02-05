@@ -5,7 +5,7 @@
 </p>
 
 ## Development requirements
-- [Go](https://https://go.dev/dl/) installation, the application was developed using Go v1.21.3
+- [Go](https://go.dev/dl/) installation, the application was developed using Go v1.21.3
 
 - [GNU Make](https://www.gnu.org/software/make/) installation, the application was developed using GNU Make v4.3
 
