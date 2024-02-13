@@ -56,6 +56,33 @@ func main() {
 	}
 }
 
+func connectToDB() *sql.DB {
+	// count is the number of times connecting to the database is attempted
+	count := 0
+
+	// fetch environment variable defined in docker-compose
+	dataSourceName := os.Getenv("DSN")
+
+	for {
+		connection, err := openDB(dataSourceName)
+		if err != nil {
+			log.Println("Postgres not yet ready...")
+			count++
+		} else {
+			log.Println("Connected to PostgreSQL!")
+			return connection
+		}
+
+		if count >= maxCount {
+			log.Println(err)
+			return nil
+		}
+
+		log.Println("Backing off for two seconds...")
+		time.Sleep(timeInterval)
+	}
+}
+
 func openDB(dataSourceName string) (*sql.DB, error) {
 	db, err := sql.Open("pgx", dataSourceName)
 	if err != nil {
@@ -68,31 +95,4 @@ func openDB(dataSourceName string) (*sql.DB, error) {
 	}
 
 	return db, nil
-}
-
-func connectToDB() *sql.DB {
-	// count is the number of times connecting to the database is attempted
-	count := 0
-
-	// fetch env var defined in docker-compose
-	dataSourceName := os.Getenv("DSN")
-
-	for {
-		connection, err := openDB(dataSourceName)
-		if err != nil {
-			log.Println("Postgres not yet ready...")
-			count++
-		} else {
-			log.Println("Connected to Postgres!")
-			return connection
-		}
-
-		if count >= maxCount {
-			log.Println(err)
-			return nil
-		}
-
-		log.Println("Backing off for two seconds...")
-		time.Sleep(timeInterval)
-	}
 }

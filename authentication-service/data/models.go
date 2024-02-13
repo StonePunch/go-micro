@@ -14,15 +14,14 @@ const dbTimeout = time.Second * 3
 
 var client *sql.DB
 
-// Models is the type for this package. Note that any model that is
-// included as a member in this type is available throughout the
-// application, anywhere that the app variable is used, provided that
-// the model is also added in the New function.
+// Models is the type for this package. Any model that is included as a member
+// in this type is available throughout the application, anywhere that the app
+// variable is used, provided that the model is also added in the New function
 type Models struct {
 	User User
 }
 
-// User is the structure which represents one user from the database.
+// User is the structure which represents one user from the database
 type User struct {
 	ID        int       `json:"id"`
 	Email     string    `json:"email"`
@@ -35,7 +34,7 @@ type User struct {
 }
 
 // New creates an instance of the data package. It returns the type
-// Model, which embeds all the types needed for the application.
+// Models, which embeds all the types needed for the application
 func New(dbPool *sql.DB) Models {
 	client = dbPool
 
@@ -252,8 +251,8 @@ func (u *User) DeleteByID(id int) error {
 	return nil
 }
 
-// Insert inserts a new user into the database and returns the id of
-// the newly inserted row
+// Insert adds a new user into the database and returns the id of the newly
+// inserted row
 func (u *User) Insert(user User) (int, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
@@ -316,8 +315,8 @@ func (u *User) ResetPassword(password string) error {
 }
 
 // PasswordMatches uses Go's bcrypt package to compare a user's supplied
-// password with the hash we have stored in the database. If the password
-// and hash match.
+// password with the hash stored in the database. Returns true if the password
+// and hash match
 func (u *User) PasswordMatches(plainText string) (bool, error) {
 	err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(plainText))
 	if err != nil {
