@@ -63,3 +63,12 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: password
     volumes:
       - ./db-data/mongo/:/data/db
+
+  # Email service simulation
+  # gihubt repo: https://github.com/mailhog/MailHog
+  # docker image: https://registry.hub.docker.com/r/mailhog/mailhog/
+  mailhog:
+    image: 'mailhog/mailhog:latest'
+    ports:
+      - "1025:1025" # SMTP port
+      - "8025:8025" # web interface port
