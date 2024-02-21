@@ -18,8 +18,6 @@ func main() {
 		Tools: tools.New(),
 	}
 
-	fmt.Println("MaxJSONSize:", app.MaxJSONSize)
-
 	log.Printf("Starting broker service on port %d\n", port)
 
 	// Define http server
