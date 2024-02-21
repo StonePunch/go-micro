@@ -35,6 +35,7 @@ type Config struct {
 }
 
 // TODO: Add migrations for the db
+// https://github.com/golang-migrate/migrate
 
 func main() {
 	log.Println("Starting authentication service")
