@@ -34,6 +34,8 @@ type Config struct {
 	Models data.Models
 }
 
+// TODO: Add migrations for the db
+
 func main() {
 	log.Println("Starting authentication service")
 
