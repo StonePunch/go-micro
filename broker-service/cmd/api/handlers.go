@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"tools"
 )
 
 const (
@@ -29,20 +30,20 @@ type LogPayload struct {
 }
 
 func (app *Config) Broker(w http.ResponseWriter, r *http.Request) {
-	payload := jsonResponse{
+	payload := tools.JsonResponse{
 		Error:   false,
 		Message: "Hit the broker",
 	}
 
-	_ = app.writeJSON(w, http.StatusOK, payload, nil)
+	_ = app.WriteJSON(w, http.StatusOK, payload, nil)
 }
 
 func (app *Config) HandleSubmission(w http.ResponseWriter, r *http.Request) {
 	var RequestPayload RequestPayload
 
-	err := app.readJSON(w, r, &RequestPayload)
+	err := app.ReadJSON(w, r, &RequestPayload)
 	if err != nil {
-		_ = app.errorJSON(w, err)
+		_ = app.ErrorJSON(w, err)
 		return
 	}
 
@@ -52,14 +53,14 @@ func (app *Config) HandleSubmission(w http.ResponseWriter, r *http.Request) {
 	case "log":
 		app.logItem(w, RequestPayload.Log)
 	default:
-		_ = app.errorJSON(w, errors.New("unknown action"))
+		_ = app.ErrorJSON(w, errors.New("unknown action"))
 	}
 }
 
 func (app *Config) logItem(w http.ResponseWriter, entry LogPayload) {
 	jsonData, err := json.MarshalIndent(entry, "", "\t")
 	if err != nil {
-		_ = app.errorJSON(w, err)
+		_ = app.ErrorJSON(w, err)
 		return
 	}
 
@@ -69,7 +70,7 @@ func (app *Config) logItem(w http.ResponseWriter, entry LogPayload) {
 		bytes.NewBuffer(jsonData),
 	)
 	if err != nil {
-		_ = app.errorJSON(w, err)
+		_ = app.ErrorJSON(w, err)
 		return
 	}
 
@@ -78,21 +79,21 @@ func (app *Config) logItem(w http.ResponseWriter, entry LogPayload) {
 	client := &http.Client{}
 	response, err := client.Do(request)
 	if err != nil {
-		_ = app.errorJSON(w, err)
+		_ = app.ErrorJSON(w, err)
 		return
 	}
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusAccepted {
-		_ = app.errorJSON(w, err)
+		_ = app.ErrorJSON(w, err)
 		return
 	}
 
-	var payload jsonResponse
+	var payload tools.JsonResponse
 	payload.Error = false
 	payload.Message = "Log Created"
 
-	_ = app.writeJSON(w, http.StatusAccepted, payload)
+	_ = app.WriteJSON(w, http.StatusAccepted, payload)
 }
 
 func (app *Config) authenticate(w http.ResponseWriter, a AuthPayload) {
@@ -105,7 +106,7 @@ func (app *Config) authenticate(w http.ResponseWriter, a AuthPayload) {
 		bytes.NewBuffer(jsonData),
 	)
 	if err != nil {
-		_ = app.errorJSON(w, err)
+		_ = app.ErrorJSON(w, err)
 		return
 	}
 
@@ -114,35 +115,35 @@ func (app *Config) authenticate(w http.ResponseWriter, a AuthPayload) {
 	client := &http.Client{}
 	response, err := client.Do(request)
 	if err != nil {
-		_ = app.errorJSON(w, err)
+		_ = app.ErrorJSON(w, err)
 		return
 	}
 	defer response.Body.Close()
 
 	if response.StatusCode == http.StatusUnauthorized {
-		_ = app.errorJSON(w, errors.New("invalid credentials"))
+		_ = app.ErrorJSON(w, errors.New("invalid credentials"))
 		return
 	} else if response.StatusCode != http.StatusAccepted {
-		_ = app.errorJSON(w, errors.New("error calling auth service"))
+		_ = app.ErrorJSON(w, errors.New("error calling auth service"))
 		return
 	}
 
-	var decodedResponse jsonResponse
+	var decodedResponse tools.JsonResponse
 	err = json.NewDecoder(response.Body).Decode(&decodedResponse)
 	if err != nil {
-		_ = app.errorJSON(w, err)
+		_ = app.ErrorJSON(w, err)
 		return
 	}
 	if decodedResponse.Error {
-		_ = app.errorJSON(w, err, http.StatusUnauthorized)
+		_ = app.ErrorJSON(w, err, http.StatusUnauthorized)
 		return
 	}
 
-	responsePayload := jsonResponse{
+	responsePayload := tools.JsonResponse{
 		Error:   false,
 		Message: "Authenticated!",
 		Data:    decodedResponse.Data,
 	}
 
-	_ = app.writeJSON(w, http.StatusAccepted, responsePayload)
+	_ = app.WriteJSON(w, http.StatusAccepted, responsePayload)
 }

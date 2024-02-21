@@ -4,14 +4,21 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"tools"
 )
 
 const port = 80
 
-type Config struct{}
+type Config struct {
+	tools.Tools
+}
 
 func main() {
-	app := Config{}
+	app := Config{
+		Tools: tools.New(),
+	}
+
+	fmt.Println("MaxJSONSize:", app.MaxJSONSize)
 
 	log.Printf("Starting broker service on port %d\n", port)
 
