@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"time"
+	"tools"
 
 	// PostgreSQL driver
 	_ "github.com/jackc/pgconn"
@@ -28,6 +29,7 @@ const (
 )
 
 type Config struct {
+	tools.Tools
 	DB     *sql.DB
 	Models data.Models
 }
@@ -41,6 +43,7 @@ func main() {
 	}
 
 	app := Config{
+		Tools:  tools.New(),
 		DB:     conn,
 		Models: data.New(conn),
 	}

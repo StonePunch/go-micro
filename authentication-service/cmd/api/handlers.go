@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"tools"
 )
 
 const loggerServiceURL = "http://logger-service/log"
@@ -16,37 +17,37 @@ func (app *Config) Authenticate(w http.ResponseWriter, r *http.Request) {
 		Password string `json:"password"`
 	}
 
-	err := app.readJSON(w, r, &requestPayload)
+	err := app.ReadJSON(w, r, &requestPayload)
 	if err != nil {
-		_ = app.errorJSON(w, err)
+		_ = app.ErrorJSON(w, err)
 		return
 	}
 
 	user, err := app.Models.User.GetByEmail(requestPayload.Email)
 	if err != nil {
-		_ = app.errorJSON(w, errors.New("invalid credentials"), http.StatusUnauthorized)
+		_ = app.ErrorJSON(w, errors.New("invalid credentials"), http.StatusUnauthorized)
 		return
 	}
 
 	valid, err := user.PasswordMatches(requestPayload.Password)
 	if err != nil || !valid {
-		_ = app.errorJSON(w, errors.New("invalid credentials"), http.StatusUnauthorized)
+		_ = app.ErrorJSON(w, errors.New("invalid credentials"), http.StatusUnauthorized)
 		return
 	}
 
 	// create log when user is successfully authenticated
 	err = app.logRequest("User Authenticated", fmt.Sprintf("%s logged in", user.Email))
 	if err != nil {
-		_ = app.errorJSON(w, errors.New("failed to log user authentication"), http.StatusInternalServerError)
+		_ = app.ErrorJSON(w, errors.New("failed to log user authentication"), http.StatusInternalServerError)
 	}
 
-	payload := jsonResponse{
+	payload := tools.JsonResponse{
 		Error:   false,
 		Message: fmt.Sprintf("user '%s' logged in", user.Email),
 		Data:    user,
 	}
 
-	_ = app.writeJSON(w, http.StatusAccepted, payload)
+	_ = app.WriteJSON(w, http.StatusAccepted, payload)
 }
 
 func (app *Config) logRequest(name, data string) error {
