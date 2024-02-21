@@ -6,16 +6,19 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"tools"
 )
 
 const webPort = 80
 
 type Config struct {
+	tools.Tools
 	Mailer Mail
 }
 
 func main() {
 	app := Config{
+		Tools:  tools.New(),
 		Mailer: createMail(),
 	}
 

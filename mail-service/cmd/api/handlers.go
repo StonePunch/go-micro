@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"tools"
 )
 
 func (app *Config) SendMail(w http.ResponseWriter, r *http.Request) {
@@ -15,9 +16,9 @@ func (app *Config) SendMail(w http.ResponseWriter, r *http.Request) {
 
 	var requestPayload mailMessage
 
-	err := app.readJSON(w, r, &requestPayload)
+	err := app.ReadJSON(w, r, &requestPayload)
 	if err != nil {
-		_ = app.errorJSON(w, err)
+		_ = app.ErrorJSON(w, err)
 		return
 	}
 
@@ -30,14 +31,14 @@ func (app *Config) SendMail(w http.ResponseWriter, r *http.Request) {
 
 	err = app.Mailer.SendSMTPMessage(msg)
 	if err != nil {
-		_ = app.errorJSON(w, err)
+		_ = app.ErrorJSON(w, err)
 		return
 	}
 
-	responsePayload := jsonResponse{
+	responsePayload := tools.JsonResponse{
 		Error:   false,
 		Message: fmt.Sprintf("Email send to %s successfully!", requestPayload.To),
 	}
 
-	_ = app.writeJSON(w, http.StatusAccepted, responsePayload)
+	_ = app.WriteJSON(w, http.StatusAccepted, responsePayload)
 }
