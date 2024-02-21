@@ -3,6 +3,7 @@ package main
 import (
 	"logger-service/data"
 	"net/http"
+	"tools"
 )
 
 type RequestPayload struct {
@@ -12,7 +13,7 @@ type RequestPayload struct {
 
 func (app *Config) WriteLog(w http.ResponseWriter, r *http.Request) {
 	var requestPayload RequestPayload
-	_ = app.readJSON(w, r, &requestPayload)
+	_ = app.ReadJSON(w, r, &requestPayload)
 
 	event := data.LogEntry{
 		Name: requestPayload.Name,
@@ -21,14 +22,14 @@ func (app *Config) WriteLog(w http.ResponseWriter, r *http.Request) {
 
 	err := app.Models.LogEntry.Insert(event)
 	if err != nil {
-		_ = app.errorJSON(w, err)
+		_ = app.ErrorJSON(w, err)
 		return
 	}
 
-	resp := jsonResponse{
+	resp := tools.JsonResponse{
 		Error:   false,
 		Message: "logged",
 	}
 
-	_ = app.writeJSON(w, http.StatusAccepted, resp)
+	_ = app.WriteJSON(w, http.StatusAccepted, resp)
 }

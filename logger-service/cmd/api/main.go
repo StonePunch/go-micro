@@ -7,6 +7,7 @@ import (
 	"logger-service/data"
 	"net/http"
 	"time"
+	"tools"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -18,6 +19,7 @@ const (
 )
 
 type Config struct {
+	tools.Tools
 	Models data.Models
 }
 
@@ -44,6 +46,7 @@ func main() {
 	}()
 
 	app := Config{
+		Tools:  tools.New(),
 		Models: data.New(client),
 	}
 
